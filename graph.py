@@ -58,9 +58,10 @@ class GraphLib:
                 _name+=".graphml"
             
             nx.write_graphml(self.create_nxGraph(), "saved/"+_name)
+            os.write(1, ("Wrote graph "+_name+" #p="+str(len(self.proteins))+" #l="+str(len(self.links))+"\n").encode())
             return True
         except:
-            print("Could not write graph to "+name)
+            os.write(1, ("Could not write graph to "+name).encode())
             return False
 
     #Proteins function
@@ -106,7 +107,7 @@ class GraphLib:
 
     #Given two proteins, remove a link. Returns the new list.
     #NOTE: checks about proteins existence should be made prior to function invocation. 
-    def remove_link_with_ps(self, _p1, _p2):
+    def remove_link_with_ps(self, _p1 : Protein, _p2 : Protein):
         p1=self.find_protein(_p1)
         p2=self.find_protein(_p2)
         rm_l=Link(p1, p2)
