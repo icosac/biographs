@@ -79,9 +79,8 @@ class GraphLib:
         return None
     
     #Given a protein, removes it from the list. Returns the new list.
-    #NOTE: checks about protein's existence should be made prior to function invocation. 
-    def remove_protein(self, _p):
-        rm_p=find_protein(proteins, _p)
+    #NOTE: checks about protein's existence should be made prior to function invocation, hence, rm_p is required to be `Protein`. 
+    def remove_protein(self, rm_p : Protein):
         #Create new list
         new_pl=[]
         for p in self.proteins:
@@ -121,7 +120,7 @@ class GraphLib:
     #Given a link, remove it. Returns the new list.
     def remove_link_with_l(self, rm_l):
         new_l=[]
-        for l in links:
+        for l in self.links:
             if l!=rm_l:
                 new_l.append(l)
         self.links=new_l
@@ -131,7 +130,7 @@ class GraphLib:
     #Given a list of links to remove, removes all of them and returns the new list.
     def remove_links(self, rm_ll):
         new_l=[]
-        for l in links:
+        for l in self.links:
             if l not in rm_ll:
                 new_l.append(l)
         self.links=new_l
