@@ -2,7 +2,8 @@ from protein import Protein
 from link import Link
 import networkx as nx
 from time import strftime
-from os import system, write
+from os import system
+import os
 
 class GraphLib:
     def __init__ (self, _name="", _proteins=[], _links=[], _G=nx.Graph()):
@@ -89,8 +90,8 @@ class GraphLib:
         self.proteins=new_pl
         #Remove all links containing protein.
         lrm=self.find_links(rm_p)
-        self.remove_links(self.find_links(rm_p))
-
+        self.links=self.remove_links(self.find_links(rm_p)) #This should be redundant
+        
         self.create_nxGraph()
         return self.proteins
 
@@ -148,8 +149,8 @@ class GraphLib:
         return None
 
     #Given a protein, return all links for which the protein is one of the edges. Returns the list of all links.
-    def find_links(self, _p: Protein):
-        p=self.find_protein(_p)
+    #NOTE: checks about protein existence are to be made prior to this function invocation. 
+    def find_links(self, p: Protein):
         new_l=[]
         for l in self.links:
             if l.p1==p or l.p2==p:
