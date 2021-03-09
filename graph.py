@@ -33,23 +33,26 @@ class GraphLib:
         for p in self.proteins:
             self.G.add_node(p.name, color=p.color, descrption=p.description)
         for l in self.links:
-            self.G.add_edge(l.p1, l.p2)
+            self.G.add_edge(str(l.p1), str(l.p2))
         return self.G
 
     def open_graph(self, graph_name=""):
         if graph_name!="" and self.name!=graph_name:
             self.name=graph_name
         _name=self.name
+        os.write(1, ("_name: "+_name).encode())
+        if not _name.endswith(".graphml"):
+            _name+=".graphml"
+        os.write(1, ("_name: "+_name).encode())
         try:
-            if not _name.endswith(".graphml"):
-                _name+=".graphml"
             self.G=nx.read_graphml("saved/"+_name)
             return self
         except:
-            os.write(1, "\033[91mCould not open graph "+self.name+"\033[0m\n".encode)
+            os.write(1, ("\033[91mCould not open graph "+self.name+"\033[0m\n").encode)
             return None
 
     def write_graph(self, graph_name=""):
+        os.write(1, "Writing graph\n".encode())
         if graph_name!="":
             self.new_name(graph_name)
         _name=self.name
