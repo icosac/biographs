@@ -14,6 +14,7 @@ class GraphLib:
         self.proteins=_proteins
         self.links=_links
         self.G=_G
+        self.pCounter=0 #Yeah I know it's ugly, but c'mon
 
     def new_name(self, n_name, recreate=True):
         old=self.name
@@ -31,7 +32,7 @@ class GraphLib:
             self.new_name(graph_name)
         self.G=nx.DiGraph(title=self.name)
         for p in self.proteins:
-            self.G.add_node(p.name, color=p.color, descrption=p.description)
+            self.G.add_node(p.name, pid=p.pid, color=p.color, descrption=p.description)
         for l in self.links:
             self.G.add_edge(str(l.p1), str(l.p2))
         return self.G
@@ -46,6 +47,27 @@ class GraphLib:
         os.write(1, ("_name: "+_name).encode())
         try:
             self.G=nx.read_graphml("saved/"+_name)
+            #Get proteins and counter
+            nxProteins=list(self.G.nodes(data=True))
+            _counter=0;
+            newProteins=[]
+            for p in nxProteins:
+                newP=Protein(int(p[1]['pid']), p[0], p[1]['color'], p[1]['description'])
+                newProteins.append(newP)
+                if newP.pid>_counter:
+                    _counter=newP.pid
+            self.pCounter=_counter+1
+            self.proteins=newProteins
+            #Get links between proteins
+            nxLinks=list(self.G.edges.data())
+            newLinks=[]
+            for e in nxLinks:
+                p1=self.find_protein(e[0])
+                p2=self.find_protein(e[1])
+                newL=Link(p1, p2, e[2]['color'], e[2]['description'])
+                newLinks.append(newL)
+            self.links=newLinks
+
             return self
         except:
             os.write(1, ("\033[91mCould not open graph "+self.name+"\033[0m\n").encode)
@@ -70,8 +92,11 @@ class GraphLib:
     #Proteins function
     def add_protein(self, new_p: Protein):
         if new_p not in self.proteins:
+            new_p.pid=self.pCounter
+            self.pCounter+=1
             self.proteins.append(new_p)
             self.create_nxGraph()
+            os.write(1, (new_p.name+" "+new_p.color).encode())
             return(self.G, self.proteins)
         else:
             return (None, None)

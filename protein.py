@@ -1,5 +1,5 @@
 class Protein:
-    def __init__(self, _id, _name, _color="black", _description=""):
+    def __init__(self, _id, _name, _color="#000000", _description=""):
         self.pid=_id
         self.name=_name
         self.color=_color

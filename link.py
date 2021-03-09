@@ -13,6 +13,9 @@ class Link:
         else:
             return (other!=None and self.p1==other.p1 and self.p2==other.p2)
 
+    def __lt__(self, other):
+        return self.p1<other.p1
+
     def __str__(self):
         return "<"+str(self.p1)+" -- "+str(self.p2)+">"
 
