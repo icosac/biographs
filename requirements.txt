@@ -3,5 +3,6 @@ numpy
 pandas
 holoviews
 networkx
-
+ipyfilechooser
+selenium
 

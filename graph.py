@@ -74,9 +74,16 @@ class GraphLib:
                    cmap = p_colors,
                    edge_color="l_id",
                    edge_cmap= l_colors,
-                   xaxis=None, yaxis=None
+                   xaxis=None, yaxis=None,
+                   height=400, width=600
                   )
         return graph
+
+    def hvGraphSave(self, dest, form="auto"):
+        g=self.hvGraph()
+        #hv.save(g, "/home/enrico/Desktop/hvImage.png", fmt=form)
+        hv.output(g, filename="/home/enrico/Desktop/hvImage.png", fig="png")
+        os.write(1, "Image saved".encode())
 
     def open_graph(self, graph_name=""):
         if graph_name!="" and self.name!=graph_name:
