@@ -4,6 +4,9 @@ import networkx as nx
 from time import strftime
 from os import system
 import os
+import numpy as np 
+import holoviews as hv
+from holoviews import opts
 
 class GraphLib:
     def __init__ (self, _name="", _proteins=[], _links=[], _G=nx.Graph()):
@@ -32,46 +35,107 @@ class GraphLib:
             self.new_name(graph_name)
         self.G=nx.DiGraph(title=self.name)
         for p in self.proteins:
-            self.G.add_node(p.name, pid=p.pid, color=p.color, descrption=p.description)
+            self.G.add_node(p.name, pid=p.pid, color=p.color, description=p.description)
         for l in self.links:
-            self.G.add_edge(str(l.p1), str(l.p2))
+            self.G.add_edge(str(l.p1), str(l.p2), color=l.color, description=l.description)
         return self.G
+
+    def hvGraph(self):
+        nxPos=nx.fruchterman_reingold_layout(self.create_nxGraph())
+
+        p_colors=[]
+        x=[]
+        y=[]
+        p_names=[]
+        p_descriptions=[]
+        p_ids=[]
+        for p in self.proteins:
+            p_colors.append(p.color)
+            x.append(nxPos[p.name][0])
+            y.append(nxPos[p.name][1])
+            p_names.append(p.name)
+            p_ids.append(p.pid)
+            p_descriptions.append(p.description)
+
+        l_colors=[]
+        l_descriptions=[]
+        source=[]
+        target=[]
+        for l in self.links:
+            l_colors.append(l.color)
+            source.append(l.p1.pid)
+            target.append(l.p2.pid)
+            l_descriptions.append(l.description)
+        l_ids=np.arange(0, len(l_colors))
+
+        nodes = hv.Nodes((x, y, p_ids, p_names, p_descriptions), vdims=['Name', 'Description'])
+        graph = hv.Graph(((source, target, l_ids, l_descriptions), nodes), vdims=['l_id', 'Description']).opts(tools=['hover','tap'],
+                   node_color='index',
+                   cmap = p_colors,
+                   edge_color="l_id",
+                   edge_cmap= l_colors,
+                   xaxis=None, yaxis=None
+                  )
+        return graph
 
     def open_graph(self, graph_name=""):
         if graph_name!="" and self.name!=graph_name:
             self.name=graph_name
         _name=self.name
-        os.write(1, ("_name: "+_name).encode())
+        os.write(1, ("_name: "+_name+"\n").encode())
         if not _name.endswith(".graphml"):
             _name+=".graphml"
-        os.write(1, ("_name: "+_name).encode())
+        os.write(1, ("_name: "+_name+"\n").encode())
         try:
             self.G=nx.read_graphml("saved/"+_name)
-            #Get proteins and counter
-            nxProteins=list(self.G.nodes(data=True))
-            _counter=0;
-            newProteins=[]
-            for p in nxProteins:
-                newP=Protein(int(p[1]['pid']), p[0], p[1]['color'], p[1]['description'])
-                newProteins.append(newP)
-                if newP.pid>_counter:
-                    _counter=newP.pid
-            self.pCounter=_counter+1
-            self.proteins=newProteins
-            #Get links between proteins
-            nxLinks=list(self.G.edges.data())
-            newLinks=[]
-            for e in nxLinks:
-                p1=self.find_protein(e[0])
-                p2=self.find_protein(e[1])
-                newL=Link(p1, p2, e[2]['color'], e[2]['description'])
-                newLinks.append(newL)
-            self.links=newLinks
-
-            return self
         except:
-            os.write(1, ("\033[91mCould not open graph "+self.name+"\033[0m\n").encode)
+            os.write(1, ("\033[91mCould not open graph "+_name+"\033[0m\n").encode())
             return None
+        #Get proteins and counter
+        nxProteins=list(self.G.nodes(data=True))
+        _counter=0;
+        newProteins=[]
+        for p in nxProteins:
+            os.write(1, (str(p)+"\n").encode())
+            p_color="#000000"
+            p_descr=""
+            try:
+                p_color=p[1]['color']
+            except:
+                os.write(1, ("Could not get color for protein "+p[0]).encode())
+            try:
+                p_descr=p[1]['description']
+            except:
+                os.write(1, ("Could not get description for protein "+p[0]).encode())
+            
+            newP=Protein(int(p[1]['pid']), p[0], p_color, p_descr)
+            newProteins.append(newP)
+            if newP.pid>_counter:
+                _counter=newP.pid
+        self.pCounter=_counter+1
+        self.proteins=newProteins
+        #Get links between proteins
+        nxLinks=list(self.G.edges.data())
+        newLinks=[]
+        for e in nxLinks:
+            p1=self.find_protein(e[0])
+            p2=self.find_protein(e[1])
+            l_color="#000000"
+            l_descr=""
+            try:
+                l_color=e[2]['color']
+            except:
+                os.write(1, ("Cannot get link color for link between "+p1.name+" and "+p2.name+"\n").encode())
+            try:
+                l_descr=e[2]['description']
+            except:
+                os.write(1, ("Cannot get link description for link between "+p1.name+" and "+p2.name+"\n").encode())
+            
+            newL=Link(p1, p2, l_color, l_descr)
+            newLinks.append(newL)
+        self.links=newLinks
+
+        return self
 
     def write_graph(self, graph_name=""):
         os.write(1, "Writing graph\n".encode())
