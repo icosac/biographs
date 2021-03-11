@@ -7,6 +7,7 @@ import os
 import numpy as np 
 import holoviews as hv
 from holoviews import opts
+import pyvips 
 
 class GraphLib:
     def __init__ (self, _name="", _proteins=[], _links=[], _G=nx.Graph()):
@@ -40,7 +41,7 @@ class GraphLib:
             self.G.add_edge(str(l.p1), str(l.p2), color=l.color, description=l.description)
         return self.G
 
-    def hvGraph(self):
+    def hvGraph(self, width=600, height=400):
         nxPos=nx.fruchterman_reingold_layout(self.create_nxGraph())
 
         p_colors=[]
@@ -74,16 +75,34 @@ class GraphLib:
                    cmap = p_colors,
                    edge_color="l_id",
                    edge_cmap= l_colors,
+                   node_size=50,
                    xaxis=None, yaxis=None,
-                   height=400, width=600
+                   height=height, width=width
                   )
-        return graph
+        labels = hv.Labels(graph.nodes, ['x', 'y'], 'Name').opts(
+                text_color="white"
+                )
+        return graph*labels
+    
 
     def hvGraphSave(self, dest, form="auto"):
-        g=self.hvGraph()
-        #hv.save(g, "/home/enrico/Desktop/hvImage.png", fmt=form)
-        hv.output(g, filename="/home/enrico/Desktop/hvImage.png", fig="png")
-        os.write(1, "Image saved".encode())
+        from bokeh.io import export_svgs
+        filename, ext=os.path.splitext(dest)
+        if ext=="":
+            ext=".png"
+        g=self.hvGraph(2160, 1080)
+
+        plot_state=hv.renderer("bokeh").get_plot(g).state
+        plot_state.output_backend="svg"
+        export_svgs(plot_state, filename=(filename+".svg"))
+        
+        if ext==".png":
+            pyvips.Image.new_from_file(filename+".svg", dpi=600).write_to_file(filename+ext)
+            os.remove(filename+".svg")
+
+        #hv.save(g, dest, fmt=form)
+        #hv.output(g, filename="/home/enrico/Desktop/hvImage1.png", fig="png")
+        os.write(1, ("Image saved to "+dest).encode())
 
     def open_graph(self, graph_name=""):
         if graph_name!="" and self.name!=graph_name:

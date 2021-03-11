@@ -47,8 +47,21 @@ text_p2_link=widgets.Dropdown(options=sorted(mygraph.proteins), description="To:
 dropdown_proteins=widgets.Dropdown(options=sorted(mygraph.proteins), description="Name: ")
 button_w=widgets.Button(icon="check", description="Save")
 button_remove_w=widgets.Button(icon="times", description="Remove")
-path_chooser_w=FileChooser(show_only_dirs=True, title="Choose where to save image: ")
-widgetsL=[choice_w, text_p_name, text_description, color_w, text_p1_link, text_p2_link, dropdown_proteins, button_w, button_remove_w, path_chooser_w]
+path_chooser_w=FileChooser(title="<b>Choose where to save image: </b>")
+#filename_w=widgets.Text(description="File name: ")
+widgetsL=[
+        choice_w, 
+        text_p_name, 
+        text_description, 
+        color_w, 
+        text_p1_link, 
+        text_p2_link, 
+        dropdown_proteins, 
+        button_w, 
+        button_remove_w, 
+        #filename_w,
+        path_chooser_w
+    ]
 
 #Function called when the value of choose_w is changed
 def on_change(change):
@@ -147,7 +160,10 @@ def updateHVDisplay(value):
     hvGrahDisplay.update(value)
 
 def saveGraph(chooser):
-    mygraph.hvGraphSave(chooser.selected_path+"image.png")
+    mygraph.hvGraphSave(chooser.selected)
+    chooser.reset()
+    #filename_w.value=""
+    choose_action()
 
 choice_w.observe(on_change)
 button_w.on_click(on_click)
@@ -227,5 +243,6 @@ def choose_action(clear=True, resetValue=False):
     elif choice==8: #Update Holoviews
         updateHVDisplay(mygraph.hvGraph())
     elif choice==9: #Save Holoviews
+        #display(filename_w)
         display(path_chooser_w)
     mygraph.write_graph()
