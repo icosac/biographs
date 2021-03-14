@@ -41,40 +41,59 @@ class GraphLib:
             self.G.add_edge(str(l.p1), str(l.p2), color=l.color, description=l.description)
         return self.G
 
-    def hvGraph(self, width=600, height=400):
+    def parseNxGraph(self):
         nxPos=nx.fruchterman_reingold_layout(self.create_nxGraph())
 
         p_colors=[]
-        x=[]
-        y=[]
+        p_x=[]
+        p_y=[]
         p_names=[]
         p_descriptions=[]
         p_ids=[]
         for p in self.proteins:
             p_colors.append(p.color)
-            x.append(nxPos[p.name][0])
-            y.append(nxPos[p.name][1])
+            p_x.append(nxPos[p.name][0])
+            p_y.append(nxPos[p.name][1])
             p_names.append(p.name)
             p_ids.append(p.pid)
             p_descriptions.append(p.description)
 
         l_colors=[]
         l_descriptions=[]
-        source=[]
-        target=[]
+        l_source=[]
+        l_target=[]
         for l in self.links:
             l_colors.append(l.color)
-            source.append(l.p1.pid)
-            target.append(l.p2.pid)
+            l_source.append(l.p1.pid)
+            l_target.append(l.p2.pid)
             l_descriptions.append(l.description)
         l_ids=np.arange(0, len(l_colors))
 
-        nodes = hv.Nodes((x, y, p_ids, p_names, p_descriptions), vdims=['Name', 'Description'])
-        graph = hv.Graph(((source, target, l_ids, l_descriptions), nodes), vdims=['l_id', 'Description']).opts(tools=['hover','tap'],
+        return {
+                'p_colors' : p_colors,
+                'p_x' : p_x,
+                'p_y' : p_y,
+                'p_names' : p_names,
+                'p_descriptions' : p_descriptions,
+                'p_ids' : p_ids,
+                'l_colors' : l_colors,
+                'l_descriptions' : l_descriptions,
+                'l_source' : l_source,
+                'l_target' : l_target,
+                'l_ids' : l_ids
+                }
+
+
+
+    def hvGraph(self, width=600, height=400):
+        dic=self.parseNxGraph()
+
+        nodes = hv.Nodes((dic['p_x'], dic['p_y'], dic['p_ids'], dic['p_names'], dic['p_descriptions']), vdims=['Name', 'Description'])
+        graph = hv.Graph(((dic['l_source'], dic['l_target'], dic['l_ids'], dic['l_descriptions']), nodes), vdims=['l_id', 'Description']).opts(tools=['hover','tap'],
                    node_color='index',
-                   cmap = p_colors,
+                   cmap = dic['p_colors'],
                    edge_color="l_id",
-                   edge_cmap= l_colors,
+                   edge_cmap= dic['l_colors'],
                    node_size=50,
                    xaxis=None, yaxis=None,
                    height=height, width=width
